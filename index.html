@@ -1,0 +1,2891 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Ember Alert | Transboundary River & Disaster Resilience</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        :root {
+            --bg-dark: #0A1929;
+            --bg-card: #112D4E;
+            --ocean-blue: #1B4965;
+            --green-blue: #3AAFA9;
+            --ember-orange: #FF6B35;
+            --alert-red: #D62828;
+            --leaf-green: #4CAF50;
+            --yellow-warn: #FFC107;
+            --text-light: #ffffff;
+            --text-dim: #B0BEC5;
+            --card-border: rgba(58, 175, 169, 0.18);
+            
+            /* Restored Missing Variables */
+            --accent: #3AAFA9;
+            --accent-rgb: 58, 175, 169;
+            --card: #112D4E;
+            --border: rgba(58, 175, 169, 0.18);
+            --text: #ffffff;
+            --muted: #B0BEC5;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3, h4 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+        }
+
+        /* Navbar */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: rgba(10, 25, 41, 0.92);
+            backdrop-filter: blur(14px);
+            z-index: 1000;
+            padding: 0.9rem 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(58, 175, 169, 0.25);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            font-size: 1.25rem;
+            color: var(--text-light);
+            text-decoration: none;
+        }
+
+        .logo i {
+            color: var(--ember-orange);
+            font-size: 1.5rem;
+            filter: drop-shadow(0 0 10px rgba(255, 107, 53, 0.6));
+        }
+
+        nav ul {
+            list-style: none;
+            display: flex;
+            gap: 1.8rem;
+            align-items: center;
+        }
+
+        nav a {
+            text-decoration: none;
+            color: var(--text-dim);
+            font-weight: 500;
+            transition: color 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        nav a:hover {
+            color: var(--green-blue);
+        }
+
+        .nav-btn {
+            background: rgba(214, 40, 40, 0.15);
+            color: var(--alert-red) !important;
+            border: 1px solid rgba(214, 40, 40, 0.4);
+            padding: 0.45rem 1.1rem;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .nav-btn:hover {
+            background: var(--alert-red);
+            color: var(--text-light) !important;
+            box-shadow: 0 0 15px rgba(214, 40, 40, 0.4);
+        }
+
+        .mobile-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--text-light);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        /* Alert Ticker */
+        .alert-ticker {
+            margin-top: 60px;
+            background: linear-gradient(90deg, #1d0707, #331405, #1d0707);
+            border-bottom: 1px solid rgba(255, 107, 53, 0.35);
+            padding: 0.55rem 5%;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-size: 0.85rem;
+            overflow: hidden;
+        }
+
+        .ticker-label {
+            background: var(--alert-red);
+            color: white;
+            font-weight: 700;
+            font-size: 0.7rem;
+            padding: 3px 9px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .ticker-content {
+            white-space: nowrap;
+            overflow: hidden;
+            color: #ffe3da;
+            font-weight: 500;
+        }
+
+        .ticker-text {
+            display: inline-block;
+            animation: scroll-left 40s linear infinite;
+        }
+
+        @keyframes scroll-left {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+
+        /* ── Credit Roles ── */
+        .credit-role {
+            font-size: 10px;
+            font-weight: 400;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            margin-left: 8px;
+            opacity: 0.7;
+        }
+
+        /* ── Contact Grid ── */
+        .contact-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-top: 32px;
+        }
+
+        .contact-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px 20px 20px;
+            text-align: center;
+            transition: border-color 0.3s, transform 0.3s;
+        }
+
+        .contact-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-3px);
+        }
+
+        .contact-icon {
+            width: 44px;
+            height: 44px;
+            margin: 0 auto 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: rgba(var(--accent-rgb), 0.08);
+            color: var(--accent);
+            font-size: 18px;
+        }
+
+        .contact-label {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 6px;
+        }
+
+        .contact-email {
+            display: inline-block;
+            font-size: 12px;
+            color: var(--accent);
+            text-decoration: none;
+            letter-spacing: 0.02em;
+            padding: 4px 10px;
+            border-radius: 6px;
+            background: rgba(var(--accent-rgb), 0.06);
+            transition: background 0.2s, color 0.2s;
+            word-break: break-all;
+        }
+
+        .contact-email:hover {
+            background: rgba(var(--accent-rgb), 0.15);
+            color: var(--text);
+        }
+
+        .contact-desc {
+            font-size: 11px;
+            color: var(--muted);
+            margin-top: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 88vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 4rem 5% 3rem;
+            position: relative;
+            background: radial-gradient(circle at 80% 20%, rgba(27, 73, 101, 0.5) 0%, transparent 55%),
+                        radial-gradient(circle at 10% 90%, rgba(58, 175, 169, 0.3) 0%, transparent 55%),
+                        radial-gradient(circle at 50% 50%, rgba(10, 25, 41, 1) 0%, rgba(10, 25, 41, 0.95) 100%);
+            text-align: center;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(58, 175, 169, 0.15);
+            border: 1px solid var(--green-blue);
+            padding: 0.5rem 1.3rem;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            color: var(--green-blue);
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+        }
+
+        .hero h1 {
+            font-size: clamp(2.4rem, 5.5vw, 4.4rem);
+            line-height: 1.15;
+            margin-bottom: 1.2rem;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, var(--text-light) 0%, var(--green-blue) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero h1 .alert {
+            color: var(--ember-orange);
+            -webkit-text-fill-color: var(--ember-orange);
+            text-shadow: 0 0 25px rgba(255, 107, 53, 0.4);
+        }
+
+        .hero p {
+            font-size: 1.15rem;
+            color: var(--text-dim);
+            max-width: 720px;
+            margin-bottom: 2.2rem;
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--ember-orange), #e55a24);
+            color: var(--bg-dark);
+            padding: 0.9rem 2.2rem;
+            border-radius: 10px;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            font-size: 1rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 20px rgba(255, 107, 53, 0.35);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(255, 107, 53, 0.5);
+            background: linear-gradient(135deg, #ff7e4d, var(--ember-orange));
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-light);
+            padding: 0.9rem 2.2rem;
+            border-radius: 10px;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            font-size: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.16);
+            border-color: var(--green-blue);
+            color: var(--green-blue);
+            transform: translateY(-3px);
+        }
+
+        .scroll-indicator {
+            margin-top: 3rem;
+            animation: bounce-down 2s ease-in-out infinite;
+            color: var(--text-dim);
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        @keyframes bounce-down {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(10px); }
+        }
+
+        /* Stats Bar */
+        .stats-container {
+            padding: 0 5%;
+            margin-top: -30px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1px;
+            background: rgba(58, 175, 169, 0.25);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 18px 40px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(58, 175, 169, 0.25);
+        }
+
+        .stat-item {
+            background: var(--bg-card);
+            padding: 2rem 1.5rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .stat-item:hover {
+            background: rgba(27, 73, 101, 0.65);
+        }
+
+        .stat-number {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--green-blue);
+            display: block;
+            line-height: 1.2;
+        }
+
+        .stat-number.red { color: var(--alert-red); }
+        .stat-number.orange { color: var(--ember-orange); }
+        .stat-number.green { color: var(--leaf-green); }
+
+        .stat-label {
+            color: var(--text-dim);
+            font-size: 0.85rem;
+            margin-top: 0.4rem;
+            font-weight: 500;
+        }
+
+        /* Section Header */
+        .section-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .section-header h2 {
+            font-size: clamp(1.8rem, 4vw, 2.8rem);
+            margin-bottom: 0.6rem;
+            letter-spacing: -0.01em;
+        }
+
+        .section-header p {
+            color: var(--text-dim);
+            max-width: 680px;
+            margin: 0 auto;
+            font-size: 0.98rem;
+        }
+
+        /* Map Section */
+        .map-section {
+            padding: 4.5rem 5% 5rem;
+        }
+
+        .map-container {
+            position: relative;
+            border-radius: 18px;
+            overflow: hidden;
+            border: 2px solid rgba(58, 175, 169, 0.35);
+            box-shadow: 0 25px 65px rgba(0, 0, 0, 0.6);
+        }
+
+        #floodMap {
+            height: 620px;
+            width: 100%;
+            background: #09131d;
+        }
+
+        .map-overlay-controls {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            z-index: 500;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-width: 200px;
+        }
+
+        .map-control-group {
+            background: rgba(10, 25, 41, 0.93);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .control-group-title {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: var(--green-blue);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding-left: 4px;
+        }
+
+        .map-filter-btn {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-light);
+            border: 1px solid transparent;
+            padding: 0.5rem 0.8rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.78rem;
+            font-weight: 500;
+            transition: all 0.25s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+            text-align: left;
+        }
+
+        .map-filter-btn:hover {
+            background: rgba(58, 175, 169, 0.2);
+            border-color: var(--green-blue);
+        }
+
+        .map-filter-btn.active {
+            background: rgba(58, 175, 169, 0.3);
+            border-color: var(--green-blue);
+            font-weight: 600;
+            box-shadow: 0 0 10px rgba(58, 175, 169, 0.3);
+        }
+
+        .severity-dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            display: inline-block;
+            flex-shrink: 0;
+        }
+
+        .severity-dot.critical { background: var(--alert-red); box-shadow: 0 0 6px var(--alert-red); }
+        .severity-dot.high { background: var(--ember-orange); box-shadow: 0 0 6px var(--ember-orange); }
+        .severity-dot.moderate { background: var(--yellow-warn); box-shadow: 0 0 6px var(--yellow-warn); }
+        .severity-dot.low { background: var(--leaf-green); box-shadow: 0 0 6px var(--leaf-green); }
+
+        /* Search & Directory Controls */
+        .directory-section {
+            padding: 3rem 5% 5rem;
+            background: linear-gradient(180deg, var(--bg-dark) 0%, #0d2238 50%, var(--bg-dark) 100%);
+        }
+
+        .directory-controls {
+            max-width: 960px;
+            margin: 0 auto 2.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+        }
+
+        .search-box {
+            position: relative;
+            width: 100%;
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 1.2rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-dim);
+            font-size: 1rem;
+        }
+
+        .search-input {
+            width: 100%;
+            background: var(--bg-card);
+            border: 1px solid rgba(58, 175, 169, 0.3);
+            padding: 0.9rem 1.2rem 0.9rem 3rem;
+            border-radius: 12px;
+            color: var(--text-light);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.95rem;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            border-color: var(--green-blue);
+            box-shadow: 0 0 18px rgba(58, 175, 169, 0.28);
+        }
+
+        .region-filter {
+            display: flex;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .region-btn {
+            background: rgba(255, 255, 255, 0.06);
+            color: var(--text-dim);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 0.55rem 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .region-btn:hover, .region-btn.active {
+            background: rgba(58, 175, 169, 0.22);
+            color: var(--green-blue);
+            border-color: var(--green-blue);
+        }
+
+        /* Flood Directory Cards */
+        .flood-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .flood-card {
+            background: var(--bg-card);
+            border-radius: 14px;
+            padding: 1.6rem;
+            border: 1px solid var(--card-border);
+            transition: all 0.35s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .flood-card::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 5px;
+            height: 100%;
+            border-radius: 4px 0 0 4px;
+        }
+
+        .flood-card.critical::before { background: var(--alert-red); }
+        .flood-card.high::before { background: var(--ember-orange); }
+        .flood-card.moderate::before { background: var(--yellow-warn); }
+        .flood-card.low::before { background: var(--leaf-green); }
+
+        .flood-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(58, 175, 169, 0.45);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .flood-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.8rem;
+            gap: 10px;
+        }
+
+        .flood-card-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--text-light);
+        }
+
+        .flood-card-region {
+            font-size: 0.75rem;
+            color: var(--green-blue);
+            background: rgba(58, 175, 169, 0.12);
+            padding: 0.25rem 0.65rem;
+            border-radius: 6px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .severity-badge {
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 0.3rem 0.7rem;
+            border-radius: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: inline-block;
+            margin-bottom: 0.8rem;
+        }
+
+        .severity-badge.critical {
+            background: rgba(214, 40, 40, 0.2);
+            color: var(--alert-red);
+            border: 1px solid rgba(214, 40, 40, 0.4);
+        }
+
+        .severity-badge.high {
+            background: rgba(255, 107, 53, 0.2);
+            color: var(--ember-orange);
+            border: 1px solid rgba(255, 107, 53, 0.4);
+        }
+
+        .severity-badge.moderate {
+            background: rgba(255, 193, 7, 0.2);
+            color: var(--yellow-warn);
+            border: 1px solid rgba(255, 193, 7, 0.4);
+        }
+
+        .severity-badge.low {
+            background: rgba(76, 175, 80, 0.2);
+            color: var(--leaf-green);
+            border: 1px solid rgba(76, 175, 80, 0.4);
+        }
+
+        .flood-card-desc {
+            color: var(--text-dim);
+            font-size: 0.88rem;
+            margin-bottom: 1.2rem;
+            line-height: 1.5;
+        }
+
+        .card-stats-mini {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            background: rgba(10, 25, 41, 0.55);
+            padding: 0.75rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .mini-stat-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .mini-stat-label {
+            font-size: 0.7rem;
+            color: var(--text-dim);
+        }
+
+        .mini-stat-val {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-light);
+        }
+
+        .flood-card-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            padding-top: 0.8rem;
+            margin-top: auto;
+        }
+
+        .view-btn {
+            color: var(--green-blue);
+            font-weight: 600;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* ── Live Weather Telemetry Section Styles ── */
+        .weather-section {
+            padding: 4rem 5%;
+            background: linear-gradient(180deg, var(--bg-dark) 0%, #0c2035 50%, var(--bg-dark) 100%);
+        }
+
+        .weather-container {
+            max-width: 1100px;
+            margin: 0 auto;
+            background: var(--bg-card);
+            border: 1px solid var(--card-border);
+            border-radius: 18px;
+            padding: 2rem;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+        }
+
+        .weather-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1.2rem;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            padding-bottom: 1.2rem;
+        }
+
+        .weather-title-group h3 {
+            font-size: 1.35rem;
+            color: var(--text-light);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .weather-title-group p {
+            font-size: 0.85rem;
+            color: var(--green-blue);
+            margin-top: 4px;
+        }
+
+        .weather-controls {
+            display: flex;
+            gap: 0.8rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .weather-search-input {
+            background: rgba(10, 25, 41, 0.8);
+            border: 1px solid rgba(58, 175, 169, 0.3);
+            padding: 0.6rem 1rem;
+            border-radius: 8px;
+            color: var(--text-light);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.88rem;
+            outline: none;
+            min-width: 260px;
+            transition: border-color 0.3s;
+        }
+
+        .weather-search-input:focus {
+            border-color: var(--green-blue);
+        }
+
+        .weather-btn {
+            background: rgba(58, 175, 169, 0.2);
+            color: var(--green-blue);
+            border: 1px solid var(--green-blue);
+            padding: 0.6rem 1.1rem;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .weather-btn:hover {
+            background: var(--green-blue);
+            color: var(--text-light);
+        }
+
+        .weather-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.8fr;
+            gap: 1.8rem;
+        }
+
+        .weather-main-card {
+            background: rgba(10, 25, 41, 0.7);
+            border: 1px solid rgba(58, 175, 169, 0.25);
+            border-radius: 14px;
+            padding: 1.8rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .weather-location-name {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--text-light);
+        }
+
+        .weather-location-sub {
+            font-size: 0.82rem;
+            color: var(--text-dim);
+            margin-bottom: 1.2rem;
+        }
+
+        .weather-temp-hero {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 0.8rem;
+        }
+
+        .weather-temp-hero i {
+            font-size: 3rem;
+            color: var(--ember-orange);
+        }
+
+        .weather-degrees {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 3.2rem;
+            font-weight: 700;
+            color: var(--text-light);
+        }
+
+        .weather-condition-text {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--green-blue);
+            margin-bottom: 0.3rem;
+        }
+
+        .weather-feels-like {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+        }
+
+        .weather-metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .weather-metric-card {
+            background: rgba(10, 25, 41, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 1rem 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .weather-metric-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+            background: rgba(58, 175, 169, 0.15);
+            color: var(--green-blue);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .weather-metric-val {
+            display: block;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-light);
+        }
+
+        .weather-metric-label {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+        }
+
+        .weather-forecast-bar {
+            background: rgba(10, 25, 41, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 1.2rem;
+        }
+
+        .weather-forecast-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .forecast-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+        }
+
+        .forecast-card {
+            background: rgba(17, 45, 78, 0.5);
+            border: 1px solid rgba(58, 175, 169, 0.15);
+            border-radius: 10px;
+            padding: 0.8rem;
+            text-align: center;
+        }
+
+        .forecast-day {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-light);
+            margin-bottom: 0.4rem;
+        }
+
+        .forecast-icon {
+            font-size: 1.4rem;
+            color: var(--ember-orange);
+            margin-bottom: 0.4rem;
+        }
+
+        .forecast-temps {
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            font-weight: 500;
+        }
+
+        /* Coral Metropolis Framework Section */
+        .coral-framework-section {
+            padding: 5rem 5%;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
+            gap: 1.8rem;
+        }
+
+        .coral-card {
+            background: var(--bg-card);
+            padding: 2rem;
+            border-radius: 14px;
+            border: 1px solid var(--card-border);
+            transition: all 0.35s ease;
+        }
+
+        .coral-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--green-blue);
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.35);
+        }
+
+        .coral-card i {
+            font-size: 2.2rem;
+            color: var(--green-blue);
+            margin-bottom: 1.2rem;
+            display: inline-block;
+        }
+
+        .coral-card h3 {
+            font-size: 1.25rem;
+            margin-bottom: 0.6rem;
+        }
+
+        .coral-card p {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        /* Digital App Showcase Section */
+        .digital-section {
+            padding: 5rem 5%;
+            background: linear-gradient(180deg, var(--bg-dark) 0%, var(--ocean-blue) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4rem;
+            flex-wrap: wrap;
+        }
+
+        .digital-content {
+            max-width: 520px;
+        }
+
+        .digital-content h2 {
+            font-size: 2.3rem;
+            margin-bottom: 1.2rem;
+        }
+
+        .digital-content p {
+            color: var(--text-dim);
+            margin-bottom: 2rem;
+            font-size: 1.05rem;
+        }
+
+        .feature-list {
+            list-style: none;
+            margin-bottom: 2rem;
+        }
+
+        .feature-list li {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            color: var(--text-light);
+            font-size: 0.95rem;
+        }
+
+        .feature-list i {
+            color: var(--ember-orange);
+            font-size: 1.1rem;
+        }
+
+        /* CSS Phone Mockup */
+        .app-mockup {
+            width: 310px;
+            height: 610px;
+            background: var(--bg-dark);
+            border: 9px solid #000;
+            border-radius: 42px;
+            overflow: hidden;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6);
+            position: relative;
+        }
+
+        .app-screen {
+            padding: 2rem 1.2rem;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .app-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.8rem;
+        }
+
+        .app-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            color: var(--ember-orange);
+            font-size: 1.1rem;
+        }
+
+        .app-alert-box {
+            background: rgba(214, 40, 40, 0.2);
+            border: 1px solid var(--alert-red);
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 1.5rem;
+        }
+
+        .app-alert-box h4 {
+            color: var(--alert-red);
+            margin-bottom: 0.4rem;
+            font-size: 0.88rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .app-alert-box p {
+            font-size: 0.8rem;
+            color: var(--text-light);
+            line-height: 1.4;
+        }
+
+        .app-menu-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.9rem;
+            background: var(--bg-card);
+            border-radius: 10px;
+            margin-bottom: 0.8rem;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .app-menu-item i {
+            color: var(--green-blue);
+            font-size: 1.1rem;
+        }
+
+        .app-menu-item span {
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        /* Emergency Contacts Banner */
+        .emergency-banner {
+            margin: 4rem 5% 2rem;
+            background: linear-gradient(135deg, rgba(214, 40, 40, 0.18), rgba(255, 107, 53, 0.18));
+            border: 1px solid rgba(214, 40, 40, 0.45);
+            border-radius: 18px;
+            padding: 2.4rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+        }
+
+        .emergency-info h3 {
+            font-size: 1.5rem;
+            color: var(--text-light);
+            margin-bottom: 0.4rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .emergency-info p {
+            color: var(--text-dim);
+            font-size: 0.95rem;
+        }
+
+        .emergency-contacts-list {
+            display: flex;
+            gap: 1.2rem;
+            flex-wrap: wrap;
+        }
+
+        .contact-chip {
+            background: rgba(10, 25, 41, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 0.65rem 1.3rem;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .contact-chip i {
+            color: var(--ember-orange);
+        }
+
+        /* Credits Section */
+        .credits-section {
+            padding: 4rem 5%;
+            text-align: center;
+            background: rgba(10, 25, 41, 0.7);
+        }
+
+        .credits-section h3 {
+            font-size: 1.2rem;
+            color: var(--text-dim);
+            margin-bottom: 1.8rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .cities-strip {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .city-badge {
+            padding: 0.7rem 2rem;
+            border: 1px solid var(--green-blue);
+            background: rgba(58, 175, 169, 0.1);
+            border-radius: 50px;
+            color: var(--text-light);
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            font-size: 1.05rem;
+            box-shadow: 0 4px 15px rgba(58, 175, 169, 0.2);
+        }
+
+        /* Footer */
+        footer {
+            padding: 3rem 5%;
+            border-top: 1px solid rgba(58, 175, 169, 0.2);
+            background: #050E18;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+        }
+
+        .footer-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .footer-left i {
+            color: var(--ember-orange);
+            font-size: 1.4rem;
+        }
+
+        .footer-left span {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            font-size: 1.15rem;
+        }
+
+        .footer-center {
+            color: var(--text-dim);
+            font-size: 0.85rem;
+        }
+
+        .footer-right {
+            display: flex;
+            gap: 0.8rem;
+        }
+
+        .footer-social {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.06);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-dim);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            text-decoration: none;
+        }
+
+        .footer-social:hover {
+            background: rgba(58, 175, 169, 0.25);
+            color: var(--green-blue);
+            border-color: var(--green-blue);
+        }
+
+        /* Modal Details */
+        .modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(6, 15, 26, 0.88);
+            backdrop-filter: blur(12px);
+            z-index: 2000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 1.5rem;
+        }
+
+        .modal-backdrop.open {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--bg-card);
+            border: 1px solid rgba(58, 175, 169, 0.4);
+            border-radius: 18px;
+            max-width: 660px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 2.2rem;
+            position: relative;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6);
+            animation: modal-pop 0.3s ease-out;
+        }
+
+        @keyframes modal-pop {
+            from { transform: scale(0.92); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 1.2rem;
+            right: 1.2rem;
+            background: rgba(255, 255, 255, 0.08);
+            border: none;
+            color: var(--text-light);
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .modal-close:hover {
+            background: var(--alert-red);
+        }
+
+        .modal-header {
+            margin-bottom: 1.2rem;
+        }
+
+        .modal-title {
+            font-size: 1.55rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .modal-subtitle {
+            font-size: 0.85rem;
+            color: var(--green-blue);
+            font-weight: 600;
+        }
+
+        .modal-body {
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.6rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            font-size: 0.9rem;
+        }
+
+        .detail-label {
+            color: var(--text-dim);
+        }
+
+        .detail-value {
+            font-weight: 600;
+            color: var(--text-light);
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: var(--bg-card);
+            border: 1px solid rgba(58, 175, 169, 0.4);
+            border-radius: 12px;
+            padding: 1rem 1.4rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 9999;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.4s ease;
+            max-width: 390px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast-icon {
+            color: var(--green-blue);
+            font-size: 1.3rem;
+        }
+
+        .toast-text {
+            font-size: 0.88rem;
+        }
+
+        /* Reveal Animation */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Custom Leaflet Map Popup */
+        .leaflet-popup-content-wrapper {
+            background: var(--bg-card) !important;
+            color: var(--text-light) !important;
+            border-radius: 14px !important;
+            border: 1px solid rgba(58, 175, 169, 0.4) !important;
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.6) !important;
+        }
+
+        .leaflet-popup-tip {
+            background: var(--bg-card) !important;
+        }
+
+        .leaflet-popup-content {
+            margin: 14px 18px !important;
+            font-family: 'Inter', sans-serif !important;
+            line-height: 1.5 !important;
+        }
+
+        .popup-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            font-size: 1.05rem;
+            margin-bottom: 2px;
+            color: var(--text-light);
+        }
+
+        .popup-region {
+            color: var(--green-blue);
+            font-size: 0.78rem;
+            font-weight: 600;
+        }
+
+        .popup-severity {
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 4px;
+            display: inline-block;
+            margin-top: 6px;
+            text-transform: uppercase;
+        }
+
+        .popup-desc {
+            color: var(--text-dim);
+            font-size: 0.82rem;
+            margin-top: 6px;
+            margin-bottom: 10px;
+        }
+
+        .popup-btn {
+            background: rgba(58, 175, 169, 0.2);
+            color: var(--green-blue);
+            border: 1px solid var(--green-blue);
+            padding: 0.35rem 0.8rem;
+            border-radius: 6px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+
+        .popup-btn:hover {
+            background: var(--green-blue);
+            color: var(--text-light);
+        }
+
+        /* Mobile Nav */
+        .mobile-nav {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: rgba(10, 25, 41, 0.98);
+            backdrop-filter: blur(20px);
+            z-index: 1500;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .mobile-nav.open {
+            display: flex;
+        }
+
+        .mobile-nav a {
+            color: var(--text-light);
+            font-size: 1.3rem;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .mobile-nav-close {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            background: none;
+            border: none;
+            color: var(--text-light);
+            font-size: 2rem;
+            cursor: pointer;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) and (min-width: 769px) {
+            .contact-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .contact-card:nth-child(3) {
+                grid-column: 1 / -1;
+            }
+        }
+
+        @media (max-width: 900px) {
+            .weather-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            nav ul { display: none; }
+            .mobile-toggle { display: block; }
+            .stats-bar { grid-template-columns: repeat(2, 1fr); }
+            .digital-section { flex-direction: column; }
+            .app-mockup { transform: scale(0.9); }
+            #floodMap { height: 450px; }
+            footer { flex-direction: column; text-align: center; }
+            .emergency-banner { flex-direction: column; text-align: center; }
+            .emergency-contacts-list { justify-content: center; }
+            .contact-grid {
+                grid-template-columns: 1fr;
+                gap: 14px;
+            }
+        }
+
+        @media (max-width: 550px) {
+            .weather-metrics-grid {
+                grid-template-columns: 1fr;
+            }
+            .weather-controls {
+                width: 100%;
+            }
+            .weather-search-input {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stats-bar { grid-template-columns: 1fr; }
+            .hero-actions { flex-direction: column; width: 100%; }
+            .btn-primary, .btn-secondary { width: 100%; justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav>
+        <a href="#hero" class="logo">
+            <i class="fas fa-fire"></i>
+            <span>Project Ember Alert</span>
+        </a>
+        <ul>
+            <li><a href="#hero">Home</a></li>
+            <li><a href="#map">Flood Map</a></li>
+            <li><a href="#directory">Directory</a></li>
+            <li><a href="#weather">Weather</a></li>
+            <li><a href="#coral">Coral Metropolis</a></li>
+            <li><a href="#digital">Amber Signal</a></li>
+            <li><a href="#emergency" class="nav-btn"><i class="fas fa-phone-alt"></i> SOS Helplines</a></li>
+        </ul>
+        <button class="mobile-toggle" onclick="toggleMobileNav()" aria-label="Toggle Navigation">
+            <i class="fas fa-bars"></i>
+        </button>
+    </nav>
+
+    <!-- Mobile Nav Overlay -->
+    <div class="mobile-nav" id="mobileNav">
+        <button class="mobile-nav-close" onclick="toggleMobileNav()"><i class="fas fa-times"></i></button>
+        <a href="#hero" onclick="toggleMobileNav()">Home</a>
+        <a href="#map" onclick="toggleMobileNav()">Regional Map</a>
+        <a href="#directory" onclick="toggleMobileNav()">Directory</a>
+        <a href="#coral" onclick="toggleMobileNav()">Coral Metropolis</a>
+        <a href="#weather" onclick="toggleMobileNav()">Weather</a>
+        <a href="#digital" onclick="toggleMobileNav()">Coral App</a>
+        <a href="#emergency" onclick="toggleMobileNav()"><i class="fas fa-phone-alt"></i> SOS Helplines</a>
+    </div>
+
+    <!-- Alert Ticker -->
+    <div class="alert-ticker">
+        <div class="ticker-label">
+            <i class="fas fa-broadcast-tower"></i> Live Transboundary Alert
+        </div>
+        <div class="ticker-content">
+            <div class="ticker-text">
+                ⚠️ Brahmaputra gauge at Neamati Ghat: 86.42m (0.92m above danger mark) &nbsp;&bull;&nbsp; ⚠️ Jamuna River at Sirajganj (Bangladesh): Water level crossing Red Threshold &nbsp;&bull;&nbsp; 🔴 GLOF Warning in Yarlung Tsangpo / Nyingchi (Tibet) &nbsp;&bull;&nbsp; ⚠️ Kosi Barrage in Sun Kosi (Nepal): 34 Gates Opened &nbsp;&bull;&nbsp; ⚠️ Ayeyarwady Delta (Myanmar): Hinthada Embankment Alert
+            </div>
+        </div>
+    </div>
+
+    <!-- Home Section -->
+    <section class="hero" id="hero">
+        <div class="hero-badge">
+            <i class="fas fa-leaf"></i> SUSTAINABLE TRANSBOUNDARY RESILIENCE FRAMEWORK
+        </div>
+        <h1>
+            Project Ember Alert<br>
+            <span class="alert">Multi-National Flood Map</span>
+        </h1>
+        <p>Unified hydro-meteorological monitoring, and evacuation telemetry across <strong>North East India</strong> and surrounding areas.</p>
+        <div class="hero-actions">
+            <a href="#map" class="btn-primary">
+                <i class="fas fa-map-marked-alt"></i> Explore Flood Map
+            </a>
+            <a href="#coral" class="btn-secondary">
+                <i class="fas fa-project-diagram"></i> Coral Metropolis
+            </a>
+        </div>
+        <a href="#stats" class="scroll-indicator">
+            <i class="fas fa-chevron-down fa-2x"></i>
+        </a>
+    </section>
+
+    <!-- Stats Bar -->
+    <div class="stats-container reveal" id="stats">
+        <div class="stats-bar">
+            <div class="stat-item">
+                <span class="stat-number red">6</span>
+                <div class="stat-label">Nations Monitored</div>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number">18.2M</span>
+                <div class="stat-label">Vulnerable Citizens</div>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number green">340+</span>
+                <div class="stat-label">Transboundary Gauges</div>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number">Live</span>
+                <div class="stat-label">Real Time Updates</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Map Section -->
+    <section class="map-section reveal" id="map">
+        <div class="section-header">
+            <h2><i class="fas fa-satellite" style="color: var(--green-blue);"></i> Interactive Flood Map</h2>
+            <p>Monitored coverage across <strong>North East India, Bangladesh, Tibet Autonomous Region, Nepal, Bhutan, and Myanmar (Burma)</strong>. Filter by nation or severity to inspect live water gauge telemetry.</p>
+        </div>
+        <div class="map-container">
+            <div id="floodMap"></div>
+            
+            <div class="map-overlay-controls">
+                <div class="map-control-group">
+                    <div class="control-group-title">Filter Region</div>
+                    <button class="map-filter-btn active" onclick="filterMapRegion('all', this)">
+                        <i class="fas fa-globe-asia"></i> All Regions
+                    </button>
+                    <button class="map-filter-btn" onclick="filterMapRegion('India', this)">
+                        🇮🇳 India
+                    </button>
+                    <button class="map-filter-btn" onclick="filterMapRegion('Bangladesh', this)">
+                        🇧🇩 Bangladesh
+                    </button>
+                    <button class="map-filter-btn" onclick="filterMapRegion('Tibet', this)">
+                        🇨🇳 Tibet (China)
+                    </button>
+                    <button class="map-filter-btn" onclick="filterMapRegion('Nepal', this)">
+                        🇳🇵 Nepal
+                    </button>
+                    <button class="map-filter-btn" onclick="filterMapRegion('Bhutan', this)">
+                        🇧🇹 Bhutan
+                    </button>
+                    <button class="map-filter-btn" onclick="filterMapRegion('Myanmar', this)">
+                        🇲🇲 Myanmar
+                    </button>
+                </div>
+
+                <div class="map-control-group">
+                    <div class="control-group-title">Severity Level</div>
+                    <button class="map-filter-btn" onclick="filterMapSeverity('critical', this)">
+                        <span class="severity-dot critical"></span> Critical
+                    </button>
+                    <button class="map-filter-btn" onclick="filterMapSeverity('high', this)">
+                        <span class="severity-dot high"></span> High Risk
+                    </button>
+                    <button class="map-filter-btn" onclick="filterMapSeverity('moderate', this)">
+                        <span class="severity-dot moderate"></span> Moderate
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Directory Section -->
+    <section class="directory-section reveal" id="directory">
+        <div class="section-header">
+            <h2>Transboundary Hazard Directory</h2>
+            <p>Comprehensive listing of high-risk riverine belts, GLOF zones, and urban surge hotspots across South &amp; Southeast Asia</p>
+        </div>
+
+        <div class="directory-controls">
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" class="search-input" placeholder="Search by location name, river basin, hazard type, or country..." onkeyup="handleSearch()">
+            </div>
+            
+            <div class="region-filter" id="regionFilter">
+                <button class="region-btn active" onclick="filterDirectory('all', this)">All Regions</button>
+                <button class="region-btn" onclick="filterDirectory('India', this)">India</button>
+                <button class="region-btn" onclick="filterDirectory('Bangladesh', this)">Bangladesh</button>
+                <button class="region-btn" onclick="filterDirectory('Tibet', this)">Tibet</button>
+                <button class="region-btn" onclick="filterDirectory('Nepal', this)">Nepal</button>
+                <button class="region-btn" onclick="filterDirectory('Bhutan', this)">Bhutan</button>
+                <button class="region-btn" onclick="filterDirectory('Myanmar', this)">Myanmar</button>
+            </div>
+        </div>
+
+        <div class="flood-grid" id="floodGrid">
+            <!-- Dynamic Injection via JavaScript -->
+        </div>
+    </section>
+
+    <!-- Live Weather Telemetry Section -->
+    <section class="weather-section reveal" id="weather">
+        <div class="section-header">
+            <h2><i class="fas fa-cloud-sun-rain" style="color: var(--green-blue);"></i> Live Meteorological Telemetry</h2>
+            <p>Real-time atmospheric conditions and precipitation telemetry (auto-detects user location or search any city)</p>
+        </div>
+
+        <div class="weather-container">
+            <div class="weather-header">
+                <div class="weather-title-group">
+                    <h3><i class="fas fa-satellite" style="color: var(--ember-orange);"></i> Weather Telemetry Hub</h3>
+                    <p id="weatherStatusTag">Syncing with Open-Meteo Weather Satellites...</p>
+                </div>
+                
+                <div class="weather-controls">
+                    <input type="text" id="weatherSearch" class="weather-search-input" placeholder="Enter city (e.g., Guwahati, Dhaka, Tokyo)..." onkeypress="if(event.key==='Enter') searchWeatherCity()">
+                    <button class="weather-btn" onclick="searchWeatherCity()">
+                        <i class="fas fa-search"></i> Search
+                    </button>
+                    <button class="weather-btn" onclick="getWeatherByGeolocation()" style="background: rgba(255, 107, 53, 0.2); color: var(--ember-orange); border-color: var(--ember-orange);">
+                        <i class="fas fa-location-arrow"></i> My Location
+                    </button>
+                </div>
+            </div>
+
+            <div class="weather-grid">
+                <!-- Hero Weather Card -->
+                <div class="weather-main-card">
+                    <div class="weather-location-name" id="wLocationName">Detecting Location...</div>
+                    <div class="weather-location-sub" id="wLocationSub">Fetching GPS Coordinates</div>
+                    
+                    <div class="weather-temp-hero">
+                        <i class="fas fa-cloud-sun" id="wHeroIcon"></i>
+                        <span class="weather-degrees" id="wTemp">--°C</span>
+                    </div>
+
+                    <div class="weather-condition-text" id="wCondition">Loading Weather...</div>
+                    <div class="weather-feels-like" id="wFeelsLike">Feels like --°C</div>
+                </div>
+
+                <!-- Atmospheric Metrics Grid -->
+                <div>
+                    <div class="weather-metrics-grid">
+                        <div class="weather-metric-card">
+                            <div class="weather-metric-icon"><i class="fas fa-tint"></i></div>
+                            <div>
+                                <span class="weather-metric-val" id="wHumidity">--%</span>
+                                <span class="weather-metric-label">Relative Humidity</span>
+                            </div>
+                        </div>
+
+                        <div class="weather-metric-card">
+                            <div class="weather-metric-icon"><i class="fas fa-wind"></i></div>
+                            <div>
+                                <span class="weather-metric-val" id="wWindSpeed">-- km/h</span>
+                                <span class="weather-metric-label">Wind Speed (10m)</span>
+                            </div>
+                        </div>
+
+                        <div class="weather-metric-card">
+                            <div class="weather-metric-icon"><i class="fas fa-cloud-showers-heavy"></i></div>
+                            <div>
+                                <span class="weather-metric-val" id="wPrecip">-- mm</span>
+                                <span class="weather-metric-label">Precipitation Rate</span>
+                            </div>
+                        </div>
+
+                        <div class="weather-metric-card">
+                            <div class="weather-metric-icon"><i class="fas fa-compass"></i></div>
+                            <div>
+                                <span class="weather-metric-val" id="wCoords">--°N, --°E</span>
+                                <span class="weather-metric-label">Geographic Coords</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3 Day Atmospheric Forecast -->
+                    <div class="weather-forecast-bar">
+                        <div class="weather-forecast-title"><i class="fas fa-calendar-alt"></i> 3-Day Atmospheric Forecast</div>
+                        <div class="forecast-grid" id="wForecastGrid">
+                            <div class="forecast-card"><div class="forecast-day">Today</div><div class="forecast-icon"><i class="fas fa-sun"></i></div><div class="forecast-temps">-- / --°C</div></div>
+                            <div class="forecast-card"><div class="forecast-day">Tomorrow</div><div class="forecast-icon"><i class="fas fa-cloud-rain"></i></div><div class="forecast-temps">-- / --°C</div></div>
+                            <div class="forecast-card"><div class="forecast-day">Day 3</div><div class="forecast-icon"><i class="fas fa-cloud-sun"></i></div><div class="forecast-temps">-- / --°C</div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Coral Metropolis Framework Section -->
+    <section class="coral-framework-section reveal" id="coral">
+        <div class="section-header">
+            <h2>Coral Metropolis Framework</h2>
+            <p>A sponge-like urban resilience architecture integrating nature-based solutions with AI-powered hydrological engineering</p>
+        </div>
+
+        <div class="grid-3">
+            <div class="coral-card">
+                <i class="fas fa-tree"></i>
+                <h3>Floodable Linear Parks</h3>
+                <p>Public urban spaces engineered to temporarily absorb excess monsoon runoff, safely impounding stormwater away from high-density housing.</p>
+            </div>
+            <div class="coral-card">
+                <i class="fas fa-cloud-rain"></i>
+                <h3>Networked Rain Gardens</h3>
+                <p>Strategically planted Bioswale depressions that capture surface runoff, filter heavy urban sediments, and ease drainage pressure.</p>
+            </div>
+            <div class="coral-card">
+                <i class="fas fa-building"></i>
+                <h3>Green Roofs &amp; Vertical Forests</h3>
+                <p>Retrofitting commercial and residential architecture with living sponge layers to retention-absorb rainwater before it reaches street channels.</p>
+            </div>
+            <div class="coral-card">
+                <i class="fas fa-road"></i>
+                <h3>Permeable Pavements</h3>
+                <p>Replacing impervious concrete with porous stone matrices, allowing surface water to recharge natural aquifer tables.</p>
+            </div>
+            <div class="coral-card">
+                <i class="fas fa-microchip"></i>
+                <h3>AI-Powered Drainage System</h3>
+                <p>Automated telemetry sensors and predictive algorithms adjusting discharge gates based on transboundary cloudburst data.</p>
+            </div>
+            <div class="coral-card">
+                <i class="fas fa-water"></i>
+                <h3>Safe Conveyance Channels</h3>
+                <p>Engineered diversion canals directing excess floodwaters safely out of riverine cities while mimicking natural hydrological flows.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Digital App Showcase -->
+    <section class="digital-section reveal" id="digital">
+        <div class="digital-content">
+            <span class="hero-badge" style="margin-bottom: 1rem;"><i class="fas fa-mobile-alt"></i> THE DIGITAL LAYER</span>
+            <h2>Amber Signal</h2>
+            <p>Your universal disaster-preparedness ecosystem. Equipping citizens across Asia with real-time tools to navigate severe flooding events.</p>
+            
+            <ul class="feature-list">
+                <li><i class="fas fa-bell"></i> Real-time multi-hazard alerts (Floods, Landslides, GLOFs)</li>
+                <li><i class="fas fa-map-marked-alt"></i> Offline evacuation maps &amp; verified shelter locators</li>
+                <li><i class="fas fa-book-medical"></i> Emergency survival &amp; water hygiene guides</li>
+                <li><i class="fas fa-language"></i> Multi-lingual support for regional languages</li>
+            </ul>
+            
+            <button class="btn-primary" onclick="triggerToast('Downloading Coral App APK...')">
+                <i class="fas fa-download"></i> Download Coral App
+            </button>
+        </div>
+
+        <!-- CSS Phone Mockup -->
+        <div class="app-mockup">
+            <div class="app-screen">
+                <div class="app-header">
+                    <span class="app-title">Coral Ember Alert</span>
+                    <i class="fas fa-globe" style="color: var(--text-dim);"></i>
+                </div>
+                <div class="app-alert-box">
+                    <h4><i class="fas fa-exclamation-circle"></i> HIGH RISK ALERT</h4>
+                    <p>Brahmaputra &amp; Jamuna gauge surging above Red Mark. Immediate evacuation advised.</p>
+                </div>
+                <div class="app-menu-item">
+                    <i class="fas fa-route"></i>
+                    <span>Nearest Offline Evacuation Route</span>
+                </div>
+                <div class="app-menu-item">
+                    <i class="fas fa-home"></i>
+                    <span>Verified Shelters (4 Nearby)</span>
+                </div>
+                <div class="app-menu-item">
+                    <i class="fas fa-first-aid"></i>
+                    <span>First Aid &amp; Flood Survival Guides</span>
+                </div>
+                <div class="app-menu-item">
+                    <i class="fas fa-satellite-dish"></i>
+                    <span>Transboundary SOS Control Room</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Emergency Contacts Banner -->
+    <section id="emergency">
+        <div class="emergency-banner reveal">
+            <div class="emergency-info">
+                <h3><i class="fas fa-headset" style="color: var(--alert-red);"></i> Emergency SOS &amp; Transboundary Control Rooms</h3>
+                <p>24/7 Disaster Response Force &amp; Regional Helplines</p>
+            </div>
+            <div class="emergency-contacts-list">
+                <div class="contact-chip"><i class="fas fa-phone"></i> India National: 1070</div>
+                <div class="contact-chip"><i class="fas fa-phone"></i> Bangladesh Disaster Control: 1090</div>
+                <div class="contact-chip"><i class="fas fa-shield-alt"></i> NDRF Operations: +91-11-24363260</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Credits Section -->
+    <section class="credits-section reveal">
+        <h3>Project Concept &amp; Technical Credits</h3>
+        <div class="cities-strip">
+            <div class="city-badge">
+                <i class="fas fa-user-circle"></i> Sonowal Dhrupad
+                <span class="credit-role">Amber Alert</span>
+            </div>
+            <div class="city-badge">
+                <i class="fas fa-user-circle"></i> Tripathy Narayan Aditya
+                <span class="credit-role">Amber Signal</span>
+            </div>
+        </div>
+
+        <div class="contact-grid">
+            <div class="contact-card">
+                <div class="contact-icon"><i class="fas fa-envelope"></i></div>
+                <div class="contact-label">Project Contact</div>
+                <a href="mailto:projectamber@gmail.com" class="contact-email">projectamber@gmail.com</a>
+                <div class="contact-desc">General inquiries &amp; collaboration</div>
+            </div>
+            <div class="contact-card">
+                <div class="contact-icon"><i class="fas fa-bell"></i></div>
+                <div class="contact-label">Dhrupad Sonowal</div>
+                <a href="mailto:sonowaldhrupad@gmail.com" class="contact-email">sonowaldhrupad@gmail.com</a>
+                <div class="contact-desc">Amber Alert</div>
+            </div>
+            <div class="contact-card">
+                <div class="contact-icon"><i class="fas fa-satellite-dish"></i></div>
+                <div class="contact-label">Aditya Tripathy</div>
+                <a href="mailto:adityatripathy@gmail.com" class="contact-email">adityatripathy@gmail.com</a>
+                <div class="contact-desc">Amber Signal</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-left">
+            <i class="fas fa-water"></i>
+            <span>Project Ember Alert</span>
+        </div>
+        <div class="footer-center">
+            &copy; 2026 Project Ember Alert &bull;
+        </div>
+    </footer>
+
+    <!-- Telemetry Location Modal -->
+    <div class="modal-backdrop" id="locationModal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
+            <div class="modal-header">
+                <div class="modal-subtitle" id="modalRegion">INDIA</div>
+                <h3 class="modal-title" id="modalTitle">Guwahati Metropolitan</h3>
+                <span class="severity-badge critical" id="modalBadge">CRITICAL SEVERITY</span>
+            </div>
+            <div class="modal-body">
+                <p id="modalDescription" style="color: var(--text-dim); font-size: 0.92rem; line-height: 1.6;">
+                    Detailed risk description.
+                </p>
+
+                <div style="background: rgba(10, 25, 41, 0.65); padding: 1.1rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08);">
+                    <h4 style="font-size: 0.95rem; margin-bottom: 0.8rem; color: var(--green-blue);">Transboundary Hydro-Telemetry Breakdown</h4>
+                    <div class="detail-row">
+                        <span class="detail-label">River Gauge Station</span>
+                        <span class="detail-value" id="modalGauge">Station Name</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Current Water Gauge</span>
+                        <span class="detail-value" id="modalWaterLevel">0.00 m</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Danger Level Threshold</span>
+                        <span class="detail-value" id="modalDangerLevel">0.00 m</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Vulnerable Population</span>
+                        <span class="detail-value" id="modalPop">0</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Primary Hazard Factor</span>
+                        <span class="detail-value" id="modalHazard">Hazard Type</span>
+                    </div>
+                </div>
+
+                <div style="margin-top: 0.5rem;">
+                    <button class="btn-primary" style="width: 100%; justify-content: center;" onclick="triggerToast('Evacuation map & nearest shelter coordinates dispatched.')">
+                        <i class="fas fa-ambulance"></i> Locate Verified Shelters
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+      <!-- Scrolling District Ticker -->
+  <div class="relative z-10 border-y border-white/5 py-4 overflow-hidden marquee-mask">
+    <div class="flex gap-8 animate-scroll whitespace-nowrap">
+      <span class="text-xs font-mono text-zinc-600 tracking-wider">GUWAHATI</span>
+      <span class="text-orange-500/30">●</span>
+      <span class="text-xs font-mono text-zinc-600 tracking-wider">DIBRUGARH</span>
+      <span class="text-orange-500/30">●</span>
+      <span class="text-xs font-mono text-zinc-600 tracking-wider">JORHAT</span>
+      <span class="text-orange-500/30">●</span>
+      <span class="text-xs font-mono text-zinc-600 tracking-wider">TINSUKIA</span>
+      <span class="text-orange-500/30">●</span>
+      <span class="text-xs font-mono text-zinc-600 tracking-wider">SIVASAGAR</span>
+      <span class="text-orange-500/30">●</span>
+      <span class="text-xs font-mono text-zinc-600 tracking-wider">SONITPUR</span>
+      <span class="text-orange-500/30">●</span>
+
+    </div>
+  </div>
+    <!-- Toast Component -->
+    <div class="toast" id="toast">
+        <i class="fas fa-info-circle toast-icon"></i>
+        <div class="toast-text" id="toastText">System initialized successfully.</div>
+    </div>
+
+    <!-- Script Block -->
+    <script>
+        // Multi-National Flood Location Dataset: Whole India, Bangladesh, Tibet, Nepal, Bhutan, Myanmar
+        const multiNationLocations = [
+            // INDIA
+            {
+                id: 1,
+                name: "Guwahati & Kamrup Metro",
+                region: "India",
+                subregion: "Assam, India",
+                severity: "critical",
+                lat: 26.1445,
+                lng: 91.7362,
+                desc: "Severe urban flash flooding triggered by clogged artificial channels (Bahini, Bharalu) and heavy upstream Brahmaputra surge.",
+                gauge: "Brahmaputra River (Guwahati Pier)",
+                waterLevel: "49.85 m",
+                dangerLevel: "49.68 m",
+                pop: "1.25 Million",
+                hazard: "Urban Flash Flood & Siltation"
+            },
+            {
+                id: 2,
+                name: "Majuli River Island",
+                region: "India",
+                subregion: "Assam, India",
+                severity: "critical",
+                lat: 26.9500,
+                lng: 94.1667,
+                desc: "World's largest river island faces annual severe bank erosion and 80%+ submergence during peak monsoon high-discharge.",
+                gauge: "Brahmaputra (Neamati Ghat)",
+                waterLevel: "86.42 m",
+                dangerLevel: "85.54 m",
+                pop: "168,000",
+                hazard: "Catastrophic Island Erosion & Breach"
+            },
+            {
+                id: 3,
+                name: "Silchar & Cachar Belt",
+                region: "India",
+                subregion: "Assam, India",
+                severity: "high",
+                lat: 24.8333,
+                lng: 92.7789,
+                desc: "Surma-Barak basin overflow leads to chronic urban submergence when Bethukandi embankment experiences high stress.",
+                gauge: "Barak River (Annapurna Ghat)",
+                waterLevel: "20.15 m",
+                dangerLevel: "19.83 m",
+                pop: "230,000",
+                hazard: "Embankment Overflow & Basin Trapping"
+            },
+            {
+                id: 4,
+                name: "Dhubri Riverine Zone",
+                region: "India",
+                subregion: "Assam, India",
+                severity: "high",
+                lat: 26.0206,
+                lng: 89.9746,
+                desc: "Low-lying char areas near Bangladesh border vulnerable to combined surges of Brahmaputra and Gadadhar rivers.",
+                gauge: "Brahmaputra (Dhubri Station)",
+                waterLevel: "29.10 m",
+                dangerLevel: "28.62 m",
+                pop: "450,000",
+                hazard: "Char Inundation & Mass Displacement"
+            },
+            {
+                id: 5,
+                name: "North Lakhimpur Subansiri",
+                region: "India",
+                subregion: "Assam, India",
+                severity: "high",
+                lat: 27.2365,
+                lng: 94.1037,
+                desc: "High velocity flash floods originating from Subansiri dam reservoir releases and Himalayan mountain runoff.",
+                gauge: "Subansiri River (Badatighat)",
+                waterLevel: "83.20 m",
+                dangerLevel: "82.50 m",
+                pop: "380,000",
+                hazard: "High-Velocity Flash Surge & Debris"
+            },
+            {
+                id: 6,
+                name: "Imphal Valley Lowlands",
+                region: "India",
+                subregion: "Manipur, India",
+                severity: "high",
+                lat: 24.8170,
+                lng: 93.9368,
+                desc: "Imphal, Nambul, and Kongba river overflow submerge residential quarters in Imphal West & East due to narrow outflow bottlenecks.",
+                gauge: "Imphal River (Minuthong Bridge)",
+                waterLevel: "789.20 m",
+                dangerLevel: "788.10 m",
+                pop: "410,000",
+                hazard: "Valley Outflow Bottleneck"
+            },
+            {
+                id: 7,
+                name: "Teesta Basin & Singtam",
+                region: "India",
+                subregion: "Sikkim, India",
+                severity: "high",
+                lat: 27.2360,
+                lng: 88.4980,
+                desc: "High-gradient riverbed susceptible to Glacial Lake Outburst Floods (GLOF) and massive debris flows downstream of Chungthang.",
+                gauge: "Teesta River (Singtam Bridge)",
+                waterLevel: "351.10 m",
+                dangerLevel: "350.00 m",
+                pop: "65,000",
+                hazard: "GLOF & Dynamic Debris Outflow"
+            },
+            {
+                id: 8,
+                name: "Kosi River Floodplain",
+                region: "India",
+                subregion: "Bihar, India",
+                severity: "critical",
+                lat: 25.8833,
+                lng: 86.6000,
+                desc: "The 'Sorrow of Bihar' - extreme avulsion and embankment pressure affecting millions across Saharsa, Supaul and Madhepura.",
+                gauge: "Kosi River (Baltara Gauge)",
+                waterLevel: "34.85 m",
+                dangerLevel: "33.85 m",
+                pop: "2.1 Million",
+                hazard: "Course Avulsion & Massive Silt Surge"
+            },
+            {
+                id: 9,
+                name: "Sundarbans Delta",
+                region: "India",
+                subregion: "West Bengal, India",
+                severity: "high",
+                lat: 22.1500,
+                lng: 88.8000,
+                desc: "Estuarine tidal surges combined with monsoonal river discharge submerge low-lying coastal islands in South 24 Parganas.",
+                gauge: "Hooghly / Matla Estuary",
+                waterLevel: "4.85 m",
+                dangerLevel: "4.20 m",
+                pop: "1.4 Million",
+                hazard: "Cyclonic Storm Surge & Saline Spills"
+            },
+            {
+                id: 10,
+                name: "Gorakhpur & Rapti Basin",
+                region: "India",
+                subregion: "Uttar Pradesh, India",
+                severity: "high",
+                lat: 26.7606,
+                lng: 83.3732,
+                desc: "Rapti and Rohini rivers breach local ring bunds, inundating suburban Gorakhpur during high monsoonal rainfall in Nepal catchments.",
+                gauge: "Rapti River (Birdghat Gauge)",
+                waterLevel: "75.80 m",
+                dangerLevel: "74.98 m",
+                pop: "890,000",
+                hazard: "Transboundary River Inundation"
+            },
+
+            // BANGLADESH
+            {
+                id: 11,
+                name: "Sylhet & Surma Basin",
+                region: "Bangladesh",
+                subregion: "Sylhet Division",
+                severity: "critical",
+                lat: 24.8949,
+                lng: 91.8687,
+                desc: "Catastrophic Flash floods when Meghalaya mountain cloudbursts drain down into the Surma & Kushiyara river systems.",
+                gauge: "Surma River (Sylhet Station)",
+                waterLevel: "11.65 m",
+                dangerLevel: "10.80 m",
+                pop: "1.6 Million",
+                hazard: "Transboundary Cloudburst Inundation"
+            },
+            {
+                id: 12,
+                name: "Sunamganj Haor Basin",
+                region: "Bangladesh",
+                subregion: "Sunamganj, Bangladesh",
+                severity: "critical",
+                lat: 25.0658,
+                lng: 91.3950,
+                desc: "Deep wetland Haors completely submerge, submerging paddy fields and cutting off all road transit for months.",
+                gauge: "Kushiyara (Sunamganj Hub)",
+                waterLevel: "9.45 m",
+                dangerLevel: "8.50 m",
+                pop: "950,000",
+                hazard: "Deep Haor Inundation & Isolation"
+            },
+            {
+                id: 13,
+                name: "Kurigram & Jamuna Entry",
+                region: "Bangladesh",
+                subregion: "Kurigram, Bangladesh",
+                severity: "high",
+                lat: 25.8058,
+                lng: 89.6361,
+                desc: "First point of entry for the Brahmaputra (Jamuna) into Bangladesh, experiencing extreme island char erosion.",
+                gauge: "Jamuna River (Kurigram Point)",
+                waterLevel: "27.30 m",
+                dangerLevel: "26.50 m",
+                pop: "620,000",
+                hazard: "Border Entry River Erosion"
+            },
+            {
+                id: 14,
+                name: "Sirajganj Jamuna Sector",
+                region: "Bangladesh",
+                subregion: "Sirajganj, Bangladesh",
+                severity: "high",
+                lat: 24.4534,
+                lng: 89.7008,
+                desc: "Massive river channel widening breaches western guide bunds, threatening urban Sirajganj embankments.",
+                gauge: "Jamuna River (Sirajganj Pier)",
+                waterLevel: "14.20 m",
+                dangerLevel: "13.35 m",
+                pop: "780,000",
+                hazard: "Embankment Scour & Displacement"
+            },
+
+            // TIBET (CHINA)
+            {
+                id: 15,
+                name: "Yarlung Tsangpo Nyingchi GLOF Zone",
+                region: "Tibet",
+                subregion: "Nyingchi, Tibet (China)",
+                severity: "critical",
+                lat: 29.6490,
+                lng: 94.3620,
+                desc: "Upper reach of Brahmaputra vulnerable to landslide dam formations (Sedongpu glacier) and sudden GLOF outbursts.",
+                gauge: "Yarlung Tsangpo (Mainling Gauge)",
+                waterLevel: "2,910 m ASL",
+                dangerLevel: "2,905 m ASL",
+                pop: "45,000",
+                hazard: "Glacial Outburst & Landslide Dam Collapse"
+            },
+            {
+                id: 16,
+                name: "Lhasa River Basin",
+                region: "Tibet",
+                subregion: "Lhasa, Tibet (China)",
+                severity: "moderate",
+                lat: 29.6520,
+                lng: 91.1721,
+                desc: "Kyi Chu river catchment experiences summer snowmelt surges requiring automated dam discharge controls.",
+                gauge: "Kyi Chu (Lhasa Station)",
+                waterLevel: "3,648 m ASL",
+                dangerLevel: "3,645 m ASL",
+                pop: "220,000",
+                hazard: "Rapid Snowmelt & Thermal Expansion"
+            },
+
+            // NEPAL
+            {
+                id: 17,
+                name: "Sun Kosi & Chatara Gorge",
+                region: "Nepal",
+                subregion: "Sunsari / Koshi, Nepal",
+                severity: "critical",
+                lat: 26.8667,
+                lng: 87.1500,
+                desc: "Mountain torrents merge into Kosi river before entering Indian plains, creating high kinetic energy flood waves.",
+                gauge: "Koshi River (Chatara Gauge)",
+                waterLevel: "168.4 m",
+                dangerLevel: "165.0 m",
+                pop: "340,000",
+                hazard: "High Kinetic Surge & Debris"
+            },
+            {
+                id: 18,
+                name: "Narayanghat & Gandaki Basin",
+                region: "Nepal",
+                subregion: "Chitwan, Nepal",
+                severity: "high",
+                lat: 27.7000,
+                lng: 84.4333,
+                desc: "Narayani (Gandaki) river overflows in Chitwan valley, submerging agricultural plains and highway transport links.",
+                gauge: "Narayani River (Narayanghat)",
+                waterLevel: "74.80 m",
+                dangerLevel: "73.00 m",
+                pop: "280,000",
+                hazard: "Valley Overflow & Mudslides"
+            },
+            {
+                id: 19,
+                name: "Kathmandu & Bagmati Basin",
+                region: "Nepal",
+                subregion: "Kathmandu Valley, Nepal",
+                severity: "moderate",
+                lat: 27.7172,
+                lng: 85.3240,
+                desc: "Urban river corridors of Bagmati and Bishnumati choke on urban runoff and illegal riverbed encroachments.",
+                gauge: "Bagmati River (Khokana Station)",
+                waterLevel: "1,280 m ASL",
+                dangerLevel: "1,278 m ASL",
+                pop: "1.4 Million",
+                hazard: "Urban Channel Surcharge"
+            },
+
+            // BHUTAN
+            {
+                id: 20,
+                name: "Punakha Pho Chhu GLOF Zone",
+                region: "Bhutan",
+                subregion: "Punakha, Bhutan",
+                severity: "high",
+                lat: 27.5920,
+                lng: 89.8770,
+                desc: "Proximity to high-altitude moraine dammed lakes (Thorthormi) makes Punakha Valley highly sensitive to GLOFs.",
+                gauge: "Pho Chhu (Punakha Dzong Station)",
+                waterLevel: "1,245 m ASL",
+                dangerLevel: "1,242 m ASL",
+                pop: "28,000",
+                hazard: "Moraine Dam Breach & GLOF"
+            },
+            {
+                id: 21,
+                name: "Gelephu & Manas River Basin",
+                region: "Bhutan",
+                subregion: "Sarpang, Bhutan",
+                severity: "moderate",
+                lat: 26.8740,
+                lng: 90.4890,
+                desc: "High-gradient southern foothill rivers breach gravel banks, impacting Gelephu border trade corridors.",
+                gauge: "Drangme Chhu / Manas Gauge",
+                waterLevel: "215 m ASL",
+                dangerLevel: "212 m ASL",
+                pop: "42,000",
+                hazard: "Foothill Gravel Surge & Spills"
+            },
+
+            // MYANMAR (BURMA)
+            {
+                id: 22,
+                name: "Ayeyarwady Delta & Hinthada",
+                region: "Myanmar",
+                subregion: "Ayeyarwady Region, Myanmar",
+                severity: "critical",
+                lat: 17.6500,
+                lng: 95.4500,
+                desc: "The 'Apex of the Delta' where Irrawaddy river divides, placing Hinthada embankment under extreme hydrostatic pressure.",
+                gauge: "Ayeyarwady River (Hinthada Gauge)",
+                waterLevel: "13.85 m",
+                dangerLevel: "13.42 m",
+                pop: "1.1 Million",
+                hazard: "Delta Apex Embankment Collapse"
+            },
+            {
+                id: 23,
+                name: "Monywa & Chindwin Basin",
+                region: "Myanmar",
+                subregion: "Sagaing Region, Myanmar",
+                severity: "high",
+                lat: 22.1167,
+                lng: 95.1333,
+                desc: "Chindwin river experiences sudden monsoonal surges that flood agricultural rice bowls in Sagaing district.",
+                gauge: "Chindwin River (Monywa Gauge)",
+                waterLevel: "1,050 cm",
+                dangerLevel: "1,000 cm",
+                pop: "370,000",
+                hazard: "Riverbank Breach & Agricultural Flood"
+            },
+            {
+                id: 24,
+                name: "Sittwe & Rakhine Coastal Belt",
+                region: "Myanmar",
+                subregion: "Rakhine State, Myanmar",
+                severity: "high",
+                lat: 20.1500,
+                lng: 92.9000,
+                desc: "Kaladan river mouth vulnerable to combined monsoonal river discharge and Bay of Bengal cyclonic storm surges.",
+                gauge: "Kaladan River (Sittwe Port)",
+                waterLevel: "4.65 m",
+                dangerLevel: "4.10 m",
+                pop: "240,000",
+                hazard: "Cyclonic Inundation & Estuary Surge"
+            }
+        ];
+
+        let map;
+        let markersGroup;
+        let activeRegionFilter = 'all';
+        let activeSeverityFilter = 'all';
+        let directorySearchVal = '';
+
+        // Initialize Leaflet Map
+        function initMap() {
+            // Centered on South-East Asia transboundary region
+            map = L.map('floodMap', {
+                center: [24.50, 90.50],
+                zoom: 6,
+                zoomControl: true
+            });
+
+            // CartoDB Dark Matter tiles
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+                subdomains: 'abcd',
+                maxZoom: 18
+            }).addTo(map);
+
+            markersGroup = L.layerGroup().addTo(map);
+            renderMapMarkers();
+        }
+
+        function getSeverityColor(sev) {
+            switch(sev) {
+                case 'critical': return '#D62828';
+                case 'high': return '#FF6B35';
+                case 'moderate': return '#FFC107';
+                case 'low': return '#4CAF50';
+                default: return '#3AAFA9';
+            }
+        }
+
+        // Render Map Markers based on current filter states
+        function renderMapMarkers() {
+            markersGroup.clearLayers();
+
+            multiNationLocations.forEach(loc => {
+                const matchRegion = (activeRegionFilter === 'all' || loc.region === activeRegionFilter);
+                const matchSev = (activeSeverityFilter === 'all' || loc.severity === activeSeverityFilter);
+
+                if (matchRegion && matchSev) {
+                    const color = getSeverityColor(loc.severity);
+                    const radius = loc.severity === 'critical' ? 12 : (loc.severity === 'high' ? 10 : 8);
+
+                    const circleMarker = L.circleMarker([loc.lat, loc.lng], {
+                        radius: radius,
+                        fillColor: color,
+                        color: '#ffffff',
+                        weight: 2,
+                        opacity: 0.9,
+                        fillOpacity: 0.8
+                    });
+
+                    const popupContent = `
+                        <div class="popup-title">${loc.name}</div>
+                        <div class="popup-region">${loc.subregion.toUpperCase()}</div>
+                        <span class="popup-severity" style="background: ${color}22; color: ${color}; border: 1px solid ${color}66;">
+                            ${loc.severity.toUpperCase()} RISK
+                        </span>
+                        <div class="popup-desc">${loc.desc}</div>
+                        <button class="popup-btn" onclick="openModal(${loc.id})">
+                            <i class="fas fa-search-plus"></i> Inspect Hydro-Telemetry
+                        </button>
+                    `;
+
+                    circleMarker.bindPopup(popupContent);
+                    markersGroup.addLayer(circleMarker);
+                }
+            });
+        }
+
+        // Filter Map Region
+        function filterMapRegion(region, btn) {
+            activeRegionFilter = region;
+            if (btn) {
+                btn.parentElement.querySelectorAll('.map-filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            }
+            renderMapMarkers();
+            triggerToast(`Map filtered to: ${region === 'all' ? 'All Regions' : region}`);
+        }
+
+        // Filter Map Severity
+        function filterMapSeverity(sev, btn) {
+            if (activeSeverityFilter === sev) {
+                activeSeverityFilter = 'all';
+                btn.classList.remove('active');
+            } else {
+                activeSeverityFilter = sev;
+                btn.parentElement.querySelectorAll('.map-filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            }
+            renderMapMarkers();
+            triggerToast(`Map severity filter: ${activeSeverityFilter.toUpperCase()}`);
+        }
+
+        // Directory Render Cards
+        function renderCards() {
+            const grid = document.getElementById('floodGrid');
+            grid.innerHTML = '';
+
+            const filtered = multiNationLocations.filter(loc => {
+                const matchesRegion = (activeRegionFilter === 'all' || loc.region === activeRegionFilter);
+                const searchLower = directorySearchVal.toLowerCase();
+                const matchesSearch = loc.name.toLowerCase().includes(searchLower) ||
+                                      loc.region.toLowerCase().includes(searchLower) ||
+                                      loc.subregion.toLowerCase().includes(searchLower) ||
+                                      loc.desc.toLowerCase().includes(searchLower) ||
+                                      loc.hazard.toLowerCase().includes(searchLower);
+                return matchesRegion && matchesSearch;
+            });
+
+            if (filtered.length === 0) {
+                grid.innerHTML = `
+                    <div style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: var(--text-dim);">
+                        <i class="fas fa-search" style="font-size: 2.5rem; margin-bottom: 1rem; color: var(--green-blue);"></i>
+                        <h3>No River Basins Found</h3>
+                        <p>No transboundary hazard zone matches your filter or search query.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            filtered.forEach(loc => {
+                const card = document.createElement('div');
+                card.className = `flood-card ${loc.severity}`;
+                card.onclick = () => openModal(loc.id);
+
+                card.innerHTML = `
+                    <div>
+                        <div class="flood-card-header">
+                            <div class="flood-card-title">${loc.name}</div>
+                            <span class="flood-card-region">${loc.region}</span>
+                        </div>
+                        <span class="severity-badge ${loc.severity}">${loc.severity} Severity</span>
+                        <p class="flood-card-desc">${loc.desc}</p>
+                        
+                        <div class="card-stats-mini">
+                            <div class="mini-stat-item">
+                                <span class="mini-stat-label">Water Gauge</span>
+                                <span class="mini-stat-val">${loc.waterLevel}</span>
+                            </div>
+                            <div class="mini-stat-item">
+                                <span class="mini-stat-label">Danger Level</span>
+                                <span class="mini-stat-val">${loc.dangerLevel}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flood-card-meta">
+                        <span><i class="fas fa-users" style="color: var(--green-blue);"></i> ${loc.pop}</span>
+                        <span class="view-btn">Telemetry <i class="fas fa-arrow-right"></i></span>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // Filter Directory by Region
+        function filterDirectory(region, btn) {
+            activeRegionFilter = region;
+            document.querySelectorAll('.region-btn').forEach(b => b.classList.remove('active'));
+            if (btn) btn.classList.add('active');
+            
+            // Also sync map region buttons if present
+            const mapBtns = document.querySelectorAll('.map-overlay-controls .map-filter-btn');
+            mapBtns.forEach(b => {
+                if (b.innerText.includes(region) || (region === 'all' && b.innerText.includes('All Regions'))) {
+                    b.classList.add('active');
+                } else {
+                    b.classList.remove('active');
+                }
+            });
+
+            renderCards();
+            renderMapMarkers();
+        }
+
+        // Handle Directory Search
+        function handleSearch() {
+            directorySearchVal = document.getElementById('searchInput').value.trim();
+            renderCards();
+        }
+
+        // Modal Handler
+        function openModal(id) {
+            const loc = multiNationLocations.find(l => l.id === id);
+            if (!loc) return;
+
+            document.getElementById('modalRegion').innerText = `${loc.subregion.toUpperCase()}`;
+            document.getElementById('modalTitle').innerText = loc.name;
+            
+            const badge = document.getElementById('modalBadge');
+            badge.className = `severity-badge ${loc.severity}`;
+            badge.innerText = `${loc.severity.toUpperCase()} SEVERITY`;
+
+            document.getElementById('modalDescription').innerText = loc.desc;
+            document.getElementById('modalGauge').innerText = loc.gauge;
+            document.getElementById('modalWaterLevel').innerText = loc.waterLevel;
+            document.getElementById('modalDangerLevel').innerText = loc.dangerLevel;
+            document.getElementById('modalPop').innerText = loc.pop;
+            document.getElementById('modalHazard').innerText = loc.hazard;
+
+            document.getElementById('locationModal').classList.add('open');
+        }
+
+        function closeModal() {
+            document.getElementById('locationModal').classList.remove('open');
+        }
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('locationModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        };
+
+        // Mobile Nav Toggle
+        function toggleMobileNav() {
+            const nav = document.getElementById('mobileNav');
+            nav.classList.toggle('open');
+        }
+
+        // Toast Trigger
+        function triggerToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastText').innerText = msg;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3500);
+        }
+
+        // Scroll Reveal Animations
+        function checkScrollReveal() {
+            const reveals = document.querySelectorAll('.reveal');
+            reveals.forEach(el => {
+                const windowHeight = window.innerHeight;
+                const revealTop = el.getBoundingClientRect().top;
+                if (revealTop < windowHeight - 120) {
+                    el.classList.add('visible');
+                }
+            });
+        }
+
+        window.addEventListener('scroll', checkScrollReveal);
+
+        // Open-Meteo WMO Weather Codes to FontAwesome Icon & Label Map
+        const weatherCodeMap = {
+            0: { text: "Clear Sky", icon: "fa-sun" },
+            1: { text: "Mainly Clear", icon: "fa-cloud-sun" },
+            2: { text: "Partly Cloudy", icon: "fa-cloud-sun" },
+            3: { text: "Overcast", icon: "fa-cloud" },
+            45: { text: "Foggy", icon: "fa-smog" },
+            48: { text: "Depositing Rime Fog", icon: "fa-smog" },
+            51: { text: "Light Drizzle", icon: "fa-cloud-rain" },
+            53: { text: "Moderate Drizzle", icon: "fa-cloud-rain" },
+            55: { text: "Dense Drizzle", icon: "fa-cloud-showers-heavy" },
+            61: { text: "Slight Rain", icon: "fa-cloud-rain" },
+            63: { text: "Moderate Rain", icon: "fa-cloud-showers-heavy" },
+            65: { text: "Heavy Rain", icon: "fa-cloud-showers-heavy" },
+            71: { text: "Slight Snow", icon: "fa-snowflake" },
+            73: { text: "Moderate Snow", icon: "fa-snowflake" },
+            75: { text: "Heavy Snow", icon: "fa-snowflake" },
+            80: { text: "Slight Rain Showers", icon: "fa-cloud-sun-rain" },
+            81: { text: "Moderate Rain Showers", icon: "fa-cloud-showers-heavy" },
+            82: { text: "Violent Rain Showers", icon: "fa-cloud-showers-water" },
+            95: { text: "Thunderstorm", icon: "fa-bolt" },
+            96: { text: "Thunderstorm with Hail", icon: "fa-bolt" },
+            99: { text: "Severe Thunderstorm", icon: "fa-bolt-lightning" }
+        };
+
+        function getWeatherInfo(code) {
+            return weatherCodeMap[code] || { text: "Cloudy Spells", icon: "fa-cloud-sun" };
+        }
+
+        // Fetch live weather data from Open-Meteo REST API
+        async function fetchWeatherData(lat, lon, cityName, countryName) {
+            const statusTag = document.getElementById('weatherStatusTag');
+            if (statusTag) statusTag.innerText = `Fetching telemetry for ${cityName}...`;
+
+            try {
+                const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m&daily=temperature_2m_max,temperature_2m_min,weather_code&timezone=auto`;
+                const res = await fetch(url);
+                const data = await res.json();
+
+                if (!data || !data.current) throw new Error("Invalid telemetry response");
+
+                const current = data.current;
+                const info = getWeatherInfo(current.weather_code);
+
+                document.getElementById('wLocationName').innerText = cityName;
+                document.getElementById('wLocationSub').innerText = countryName || `${lat.toFixed(2)}°N, ${lon.toFixed(2)}°E`;
+                document.getElementById('wTemp').innerText = `${Math.round(current.temperature_2m)}°C`;
+                document.getElementById('wCondition').innerText = info.text;
+                document.getElementById('wHeroIcon').className = `fas ${info.icon}`;
+                document.getElementById('wFeelsLike').innerText = `Feels like ${Math.round(current.apparent_temperature)}°C`;
+
+                document.getElementById('wHumidity').innerText = `${current.relative_humidity_2m}%`;
+                document.getElementById('wWindSpeed').innerText = `${current.wind_speed_10m} km/h`;
+                document.getElementById('wPrecip').innerText = `${current.precipitation} mm`;
+                document.getElementById('wCoords').innerText = `${lat.toFixed(2)}°N, ${lon.toFixed(2)}°E`;
+
+                // Render 3-Day Forecast
+                if (data.daily && data.daily.time) {
+                    const grid = document.getElementById('wForecastGrid');
+                    grid.innerHTML = '';
+                    const days = ["Today", "Tomorrow", "Day 3"];
+
+                    for (let i = 0; i < 3; i++) {
+                        const maxT = Math.round(data.daily.temperature_2m_max[i]);
+                        const minT = Math.round(data.daily.temperature_2m_min[i]);
+                        const dInfo = getWeatherInfo(data.daily.weather_code[i]);
+
+                        grid.innerHTML += `
+                            <div class="forecast-card">
+                                <div class="forecast-day">${days[i]}</div>
+                                <div class="forecast-icon"><i class="fas ${dInfo.icon}"></i></div>
+                                <div class="forecast-temps">${maxT}° / ${minT}°C</div>
+                            </div>
+                        `;
+                    }
+                }
+
+                if (statusTag) statusTag.innerText = `Live Telemetry Active • Updated Just Now`;
+            } catch (err) {
+                console.error("Weather fetch error:", err);
+                if (statusTag) statusTag.innerText = "Error syncing weather telemetry.";
+            }
+        }
+
+        // User-to-user variable location via browser Geolocation API
+        function getWeatherByGeolocation() {
+            if (!navigator.geolocation) {
+                alert("Geolocation is not supported by your browser.");
+                return;
+            }
+
+            const statusTag = document.getElementById('weatherStatusTag');
+            if (statusTag) statusTag.innerText = "Requesting GPS location...";
+
+            navigator.geolocation.getCurrentPosition(
+                async (pos) => {
+                    const lat = pos.coords.latitude;
+                    const lon = pos.coords.longitude;
+                    
+                    try {
+                        const geoRes = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
+                        const geoData = await geoRes.json();
+                        const city = geoData.address.city || geoData.address.town || geoData.address.village || geoData.address.county || "Your Location";
+                        const country = geoData.address.country || "Detected GPS Position";
+
+                        fetchWeatherData(lat, lon, city, country);
+                    } catch (e) {
+                        fetchWeatherData(lat, lon, "Your Location", `${lat.toFixed(2)}°N, ${lon.toFixed(2)}°E`);
+                    }
+                },
+                (err) => {
+                    // Default fallback if user denies location permission
+                    fetchWeatherData(26.1445, 91.7362, "Guwahati", "Assam, India");
+                },
+                { timeout: 10000 }
+            );
+        }
+
+        // Search for any city worldwide
+        async function searchWeatherCity() {
+            const query = document.getElementById('weatherSearch').value.trim();
+            if (!query) return;
+
+            const statusTag = document.getElementById('weatherStatusTag');
+            if (statusTag) statusTag.innerText = `Searching satellite index for "${query}"...`;
+
+            try {
+                const res = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=1&language=en&format=json`);
+                const data = await res.json();
+
+                if (data.results && data.results.length > 0) {
+                    const loc = data.results[0];
+                    const city = loc.name;
+                    const country = [loc.admin1, loc.country].filter(Boolean).join(", ");
+                    fetchWeatherData(loc.latitude, loc.longitude, city, country);
+                } else {
+                    if (statusTag) statusTag.innerText = `No city found matching "${query}".`;
+                }
+            } catch (err) {
+                console.error("City search error:", err);
+            }
+        }
+
+        // On DOM Load
+        document.addEventListener('DOMContentLoaded', () => {
+            initMap();
+            renderCards();
+            checkScrollReveal();
+            getWeatherByGeolocation();
+            setTimeout(() => {
+                triggerToast('Project Ember Alert: Transboundary Satellite Feed Connected.');
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
